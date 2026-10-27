@@ -1,0 +1,7 @@
+# 构建/运行时产物
+node_modules/
+.mimosa/
+ZcodeImage/
+*.log
+.DS_Store
+Thumbs.db

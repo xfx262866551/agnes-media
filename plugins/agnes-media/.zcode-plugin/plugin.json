@@ -1,0 +1,9 @@
+{
+  "name": "agnes-media",
+  "version": "0.4.0",
+  "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；候选链跨厂商容灾 + 模型兜底链（最多3个）+ 提示词增强；无内置默认凭据，支持 Agnes 及 OpenAI 兼容等其他厂商",
+  "author": { "name": "Administrator" },
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json",
+  "skills": "./skills"
+}

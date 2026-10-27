@@ -1,0 +1,43 @@
+{
+  "name": "agnes-media-market",
+  "description": "Agnes Media plugin marketplace for ZCode — image & video generation tools (text-to-image, image-to-image, image editing, multi-image composition, text-to-video/keyframe/reference video).",
+  "description_i18n": {
+    "en": "Agnes Media plugin marketplace for ZCode — image & video generation tools with custom API key/base URL, cross-provider failover chains and model fallback.",
+    "zh-CN": "ZCode 的 Agnes 图片视频生成插件市场：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；自定义 Key 与 Base URL，候选链跨厂商容灾 + 模型兜底。"
+  },
+  "owner": {
+    "name": "xfx262866551"
+  },
+  "plugins": [
+    {
+      "name": "agnes-media",
+      "source": "./plugins/agnes-media",
+      "version": "0.4.0",
+      "description": "Image & video generation for ZCode: text-to-image, image-to-image, image editing, multi-image composition, text-to-video / keyframe / reference video. No built-in credentials — configure your own API key & base URL at first run; provider presets for Agnes and OpenAI-compatible gateways; candidate chains (up to 3) fail over across vendors atomically; model fallback chains (up to 3) switch on 429/5xx/timeout/unreachable; optional prompt enhancement. MCP tools: generate_image, edit_image, generate_video, video_status, media_config, configure_media.",
+      "displayName": "Agnes Media",
+      "displayName_i18n": {
+        "en": "Agnes Media",
+        "zh-CN": "Agnes 图片视频生成"
+      },
+      "description_i18n": {
+        "en": "Image & video generation: text-to-image, image-to-image, image editing, multi-image composition, text-to-video / keyframe / reference video. No built-in credentials; configure your own key & base URL. Provider presets (Agnes / OpenAI-compatible / custom), candidate chains for cross-vendor failover, model fallback chains (max 3, optional 2nd/3rd), optional prompt enhancement.",
+        "zh-CN": "图片与视频生成：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频。无内置默认凭据，首次使用引导配置自己的 API Key 与 Base URL。支持 Agnes / OpenAI 兼容 / 自定义三种厂商形态；候选链（最多3项）跨厂商整体容灾；模型兜底链（最多3个，第2/3个可选）遇 429/不通自动切换；可选提示词增强。"
+      },
+      "author": {
+        "name": "xfx262866551"
+      },
+      "category": "productivity",
+      "keywords": [
+        "agnes",
+        "image-generation",
+        "video-generation",
+        "text-to-image",
+        "image-to-image",
+        "text-to-video",
+        "mcp",
+        "zcode",
+        "plugin"
+      ]
+    }
+  ]
+}
