@@ -1,10 +1,21 @@
-# agnes-media
+# MediaForge · 影匠
 
-> ZCode 插件：一句话生成图片和视频。文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频，自定义 API Key 与 Base URL，跨厂商容灾。
+> ZCode 插件：一句话生成图片和视频。**图片与视频可以分别配置不同厂商**，自定义 API Key 与 Base URL，跨厂商容灾。
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.9.1-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.9.2-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
 
 给 [ZCode](https://zcode.ai) 装一个插件，以后"画张图""把这个视频做出来"都是一句话的事。基于 [Agnes AI](https://agnes-ai.com) 的图片/视频生成 API 设计，同时兼容 OpenAI 兼容形态的其他厂商（智谱、各类中转站等）。
+
+## 特性一览
+
+- **文生图 / 图生图 / 图片编辑 / 多图合成**：一句话出图，自动落盘、自动在对话里显示；
+- **生视频**：文生视频、首尾帧、参考图（Agnes 形态），异步任务可轮询；
+- **图片与视频分开配厂商**：图片用 A 家、视频用 B 家，各用各的 Base URL/Key/模型，互不影响（配置文件 `image` / `video` 分域）；
+- **任意厂商**：Agnes 官方 / OpenAI 兼容网关（智谱、中转站等）/ 自定义端点，接口格式按 Base URL 自动判断，不用选"厂商形态"；
+- **交互式初始化**：`/agnes-media:init` 用可点选卡片引导，先问"同一家还是分开"，分开则分别配两家的地址和模型；
+- **容灾**：模型兜底链（最多 3 个，429/超时/不通自动切）+ 跨厂商候选链（最多 3 项，地址+Key+模型整体切换）；
+- **提示词增强**（可选）：配 `textModel` 后自动把短句扩写成结构化提示词；
+- **零依赖**：纯 Node 18+，不需要 `npm install`。
 
 ## 能力
 
@@ -16,7 +27,7 @@
 | "生成一段 5 秒海浪视频" | MP4 下载链接（异步任务，可轮询） |
 | "用这张图做首帧生成视频" | 关键帧视频（Agnes 形态） |
 
-底层工具（MCP）：`generate_image`（文生图）、`edit_image`（图生图/编辑/多图合成）、`generate_video`（文生视频/关键帧/参考视频）、`video_status`（任务查询）、`media_config` / `configure_media`（配置管理）。
+底层工具（MCP）：`generate_image`（文生图）、`edit_image`（图生图/编辑/多图合成）、`generate_video`（文生视频/关键帧/参考视频）、`video_status`（任务查询）、`media_config` / `configure_media`（配置管理）。斜杠命令：`/agnes-media:init`（交互式初始化）、`/agnes-media:config`（中途修改）。
 
 ## 安装
 
@@ -118,6 +129,15 @@ node --check plugins/agnes-media/server/index.mjs   # 语法检查
 ```
 
 无第三方依赖，不需要 `npm install`。
+
+## 常见问题
+
+- **市场刷新后没有更新提示？** 先看仓库根目录 marketplace.json 里的 version（线上版本源）。在 市场源 → 点该市场的刷新按钮；仍无提示就把这个市场源**删掉重新添加**仓库地址——客户端市场目录有缓存。
+- **设置 → MCP 显示“插件声明了该 MCP 服务器，但当前未成功加载”？** 安装/更新插件后必须**完全退出 ZCode（菜单 → 退出，所有窗口）再重开**，MCP 服务器随启动注册。
+- **配置区填不了 API Key？** ZCode 当前版本对 sensitive 字段只显示脱敏状态、不支持界面填写——Key 用 /agnes-media:init、配置文件或环境变量 AGNES_API_KEY。
+- **Base URL 要不要带 /v1？** 都行，插件会自动去重。
+- **图片想用 A 家、视频用 B 家？** 配置文件写 image / video 两个子对象（见上文「图片与视频用不同厂商」）。
+- **插件标识 agnes-media 为什么不是中文名？** 那是稳定标识（更新依赖它，不能改）；界面显示名是 MediaForge · 影匠。
 
 ## License
 

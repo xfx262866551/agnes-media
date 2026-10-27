@@ -1,8 +1,10 @@
 {
   "name": "agnes-media",
-  "version": "0.9.1",
-  "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；适配任意 OpenAI 兼容厂商，插件配置区或 /agnes-media:init 一次配置永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
-  "author": { "name": "xfx262866551" },
+  "version": "0.9.2",
+  "description": "MediaForge·影匠：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；图片与视频可分别配置不同厂商；交互式初始化一次配置永久生效；候选链容灾+模型兜底链+提示词增强；无内置默认凭据",
+  "author": {
+    "name": "xfx262866551"
+  },
   "commands": "./commands",
   "skills": "./skills",
   "userConfig": {
