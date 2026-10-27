@@ -1,8 +1,10 @@
 {
   "mcpServers": {
     "agnes-media": {
+      "type": "stdio",
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server/index.mjs"]
+      "args": ["${CLAUDE_PLUGIN_ROOT}/server/index.mjs"],
+      "enabled": true
     }
   }
 }
