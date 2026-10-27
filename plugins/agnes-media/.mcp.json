@@ -7,7 +7,6 @@
       "env": {
         "AGNES_API_KEY": "${user_config.apiKey}",
         "AGNES_BASE_URL": "${user_config.baseUrl}",
-        "AGNES_MEDIA_PROVIDER": "${user_config.provider}",
         "AGNES_IMAGE_MODEL": "${user_config.imageModel}",
         "AGNES_VIDEO_MODEL": "${user_config.videoModel}",
         "AGNES_IMAGE_MODELS": "${user_config.imageModels}",

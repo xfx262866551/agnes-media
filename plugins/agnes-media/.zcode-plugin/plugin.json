@@ -1,6 +1,6 @@
 {
   "name": "agnes-media",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；适配任意 OpenAI 兼容厂商，插件配置区或 /agnes-media:init 一次配置永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
   "author": { "name": "xfx262866551" },
   "mcpServers": ".mcp.json",
@@ -15,12 +15,7 @@
     },
     "baseUrl": {
       "title": "API Base URL",
-      "description": "接口地址，由你所用厂商决定。参考：Agnes 官方 https://apihub.agnes-ai.com；其他 OpenAI 兼容网关填对方地址",
-      "type": "string"
-    },
-    "provider": {
-      "title": "接口格式（厂商形态）",
-      "description": "你的接口是哪种格式？agnes=Agnes 官方 / openai=OpenAI 兼容（大多数厂商和中转站）/ custom=端点全手动",
+      "description": "接口地址，由你所用厂商决定（复制对方文档里的地址即可）。接口格式会根据地址自动判断，无需另选",
       "type": "string"
     },
     "imageModel": {

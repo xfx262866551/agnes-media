@@ -12,19 +12,15 @@ description: 初始化 Agnes Media 插件配置（首次安装后运行一次）
 
 ## 执行步骤
 
-0. **用交互选择器引导，不要只发纯文字问题**：调用 AskUserQuestion 工具（会渲染成可点选的选项卡片）发起「厂商形态」选择——header 写"厂商形态"，三个选项各带一句说明：
-   - `Agnes 官方`：用 Agnes 的 apihub 接口（sk- 开头 Key）
-   - `OpenAI 兼容网关`：智谱、各类中转站等，接口格式与 OpenAI 相同
-   - `自定义端点`：端点全手动指定
-   选完后在回复正文里继续收集其余信息（Key 这类自由文本只能用正文输入）。若 AskUserQuestion 工具不可用，再退回正文一次性提问。
+0. **直接向用户收集，不要问"厂商形态"**：接口格式由插件根据 Base URL 自动判断（Agnes 域名→agnes，其余→OpenAI 兼容），用户不需要理解或填写。在一个回复里问清：**Base URL、API Key、图片模型、视频模型**（每项附可复制的参考值）。若 AskUserQuestion 工具可用且用户需要帮助选择，也可用它提供参考选项。
 1. 调用 `media_config` 查看当前状态。
-   - 若显示**无缺失项且无 provider 警告**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（API Key 脱敏），结束。
-   - 若显示缺失项（通常是 apiKey / baseUrl / imageModel / videoModel 全部缺失）：继续第 2 步。
-   - 若出现 **provider 未设置警告**：即使其他项齐全也要引导——单独问用户所用厂商（baseUrl 是 `apihub.agnes-ai.com` 时建议 `provider=agnes`；OpenAI 兼容网关用 `openai`），确认后用 `configure_media` 补写 provider，再结束。provider 缺失时请求会按 openai 兼容形态发送，Agnes 官方的图生图参数、宽高比会不生效。
-   - **若 `media_config` 工具不可用**（插件 MCP 未加载，详见下方「MCP 不可用时的降级路径」）：直接走降级路径，不要反复重试工具；降级读取配置文件时同样要检查 `provider` 字段是否存在。
-2. **按选择收集，最少提问**：
-   - **Agnes 官方**：只需要用户提供 **API Key**（sk- 开头）。其余采用 Agnes 官方对应值（在回复中列出供确认）：`baseUrl=https://apihub.agnes-ai.com`、`provider=agnes`、`imageModels=["agnes-image-2.5-flash"]`、`videoModels=["agnes-video-2.5-flash"]`；用户没异议就直接写入，不用逐项确认。
-   - **其他厂商**：再问 **baseUrl**、**apiKey**、**imageModel / videoModel**（provider 按形态判断：OpenAI 兼容网关用 `openai`，端点特殊用 `custom`）。
+   - 若显示**无缺失项**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（接口格式会显示"自动判断"结果，API Key 脱敏），结束。
+   - 若缺少 apiKey（最常见）：引导用户在插件详情**配置区**填写（保存后完全退出重开生效），或由本命令写入配置文件（立即生效）。
+   - 若显示缺失项：继续第 2 步。
+   - **若 `media_config` 工具不可用**（插件 MCP 未加载，详见下方「MCP 不可用时的降级路径」）：直接走降级路径，不要反复重试工具。
+2. **按需收集，最少提问**：
+   - **Agnes 官方**（baseUrl 为 `apihub.agnes-ai.com`）：只需要用户提供 **API Key**（sk- 开头）。其余采用 Agnes 官方对应值（在回复中列出供确认）：`imageModels=["agnes-image-2.5-flash"]`、`videoModels=["agnes-video-2.5-flash"]`；用户没异议就直接写入，不用逐项确认。
+   - **其他厂商**：问清 **baseUrl**、**apiKey**、**imageModel / videoModel**（接口格式自动判断，不用提 provider）。
    - 无论哪种，都提醒一句：Key 通过对话传入会留在对话记录里；更稳妥的方式是插件详情配置区或配置文件。
    - （可选）多模型兜底 `imageModels` / `videoModels`（最多 3 个）、跨厂商候选链 `chains`（最多 3 项）——只在高可用场景需要，用户不提就不问；也提示这两个兜底链现在可以直接在插件详情配置区用逗号分隔填写。
 3. 调用 `configure_media` 把确认的值写入配置。

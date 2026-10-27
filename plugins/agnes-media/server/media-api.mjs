@@ -219,8 +219,15 @@ export function resolveConfig(params = {}) {
   );
 
   const providerPick = pickSource(params.provider, "param", cleanEnv(env.AGNES_MEDIA_PROVIDER), "env", data.provider, "file");
-  const provider = PROVIDERS.includes(providerPick.value) ? providerPick.value : "";
-  const preset = provider ? PROVIDER_PRESETS[provider] : null;
+  // 厂商形态自动推断：用户无需理解"provider"——Agnes 域名自动判 agnes，其余按 openai 兼容
+  const providerExplicit = PROVIDERS.includes(providerPick.value) ? providerPick.value : "";
+  let provider = providerExplicit;
+  let providerSource = providerPick.source;
+  if (!provider) {
+    provider = /agnes-ai\.com|agnesapi/i.test(normalizeBaseUrl(baseUrlPick.value)) ? "agnes" : "openai";
+    providerSource = "inferred";
+  }
+  const preset = PROVIDER_PRESETS[provider];
 
   // 模型兜底链（最多 3 个）：调用参数 > 环境变量 > 配置文件；单值 imageModel/videoModel 视为链首。
   // _noEnvImageModels/_noEnvVideoModels：候选链条目显式指定模型时，不让配置区注入的 env 模型混入该候选
@@ -256,8 +263,9 @@ export function resolveConfig(params = {}) {
   return {
     apiKey: apiKey.value,
     baseUrl: normalizeBaseUrl(baseUrlPick.value),
-    provider: provider || null,
-    providerLabel: preset ? preset.label : null,
+    provider,
+    providerLabel: preset.label,
+    providerSource,
     imageModels,
     videoModels,
     imageModel: imageModels[0] || "",
@@ -279,7 +287,7 @@ export function resolveConfig(params = {}) {
       baseUrl: baseUrlPick.source,
       imageModel: imageModelPick.source,
       videoModel: videoModelPick.source,
-      provider: providerPick.source,
+      provider: providerSource,
     },
     missing,
   };
@@ -392,7 +400,13 @@ async function apiRequest(cfg, path, { method = "GET", body, query, timeoutMs = 
   } catch {
     // 非 JSON 响应
   }
-  if (!res.ok) throw new MediaError(extractApiError(json, text, res.status), null, { status: res.status, kind: "http" });
+  if (!res.ok) {
+    const hint =
+      res.status === 401 || res.status === 403
+        ? "API Key 可能无效或已过期。更新方式：设置→插件→本插件→配置区修改 API Key（保存后完全退出重开 ZCode），或修改 ~/.agnes-media/config.json 的 apiKey 字段。"
+        : null;
+    throw new MediaError(extractApiError(json, text, res.status), hint, { status: res.status, kind: "http" });
+  }
   return { status: res.status, json, text, contentType: res.headers.get("content-type") || "" };
 }
 

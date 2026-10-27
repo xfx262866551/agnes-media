@@ -240,7 +240,7 @@ function formatModelChain(chain, source) {
 function formatCandidateLine(cfg, index) {
   const parts = [`#${index + 1}`, cfg.baseUrl || "(无 baseUrl)"];
   parts.push(`key=${cfg.apiKey ? maskKey(cfg.apiKey) : "无"}`);
-  parts.push(`provider=${cfg.provider || "custom"}`);
+  parts.push(`provider=${cfg.provider}${cfg.sources.provider === "inferred" ? "(自动判断)" : ""}`);
   parts.push(`图片=${cfg.imageModels.join("/") || "未配"}`);
   parts.push(`视频=${cfg.videoModels.join("/") || "未配"}`);
   return parts.join(" · ");
@@ -268,8 +268,8 @@ function formatConfigStatus(candidates) {
     lines.push("", `⚠️ 配置不完整，缺少：${cfg.missing.join("、")}`);
     lines.push("请调用 configure_media 完成初始化（provider/baseUrl/apiKey/imageModel/videoModel），或让用户手写配置文件/设置环境变量。");
   }
-  if (!cfg.provider) {
-    lines.push("", "⚠️ 未设置 provider（厂商形态）：当前按 openai 兼容形态发送请求。若 baseUrl 是 Agnes 官方（apihub.agnes-ai.com），必须设置 provider=agnes，否则图生图参数、宽高比等不生效。可用 configure_media 写入。");
+  if (!cfg.apiKey) {
+    lines.push("", "⚠️ 未配置 API Key：设置→插件→本插件→配置区填写（保存后完全退出重开 ZCode），或写 ~/.agnes-media/config.json 的 apiKey 字段。");
   }
   return lines.join("\n");
 }
