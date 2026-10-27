@@ -10,6 +10,8 @@
         "AGNES_MEDIA_PROVIDER": "${user_config.provider}",
         "AGNES_IMAGE_MODEL": "${user_config.imageModel}",
         "AGNES_VIDEO_MODEL": "${user_config.videoModel}",
+        "AGNES_IMAGE_MODELS": "${user_config.imageModels}",
+        "AGNES_VIDEO_MODELS": "${user_config.videoModels}",
         "AGNES_MEDIA_SAVE_DIR": "${user_config.saveDir}"
       },
       "enabled": true,

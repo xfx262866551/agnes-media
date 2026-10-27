@@ -12,19 +12,21 @@ description: 初始化 Agnes Media 插件配置（首次安装后运行一次）
 
 ## 执行步骤
 
-0. **收集信息时直接在回复正文中向用户提问**（一次性列全要问的内容），不要调用交互式工具、不要等待、不要循环重试。
+0. **用交互选择器引导，不要只发纯文字问题**：调用 AskUserQuestion 工具（会渲染成可点选的选项卡片）发起「厂商形态」选择——header 写"厂商形态"，三个选项各带一句说明：
+   - `Agnes 官方`：用 Agnes 的 apihub 接口（sk- 开头 Key）
+   - `OpenAI 兼容网关`：智谱、各类中转站等，接口格式与 OpenAI 相同
+   - `自定义端点`：端点全手动指定
+   选完后在回复正文里继续收集其余信息（Key 这类自由文本只能用正文输入）。若 AskUserQuestion 工具不可用，再退回正文一次性提问。
 1. 调用 `media_config` 查看当前状态。
    - 若显示**无缺失项且无 provider 警告**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（API Key 脱敏），结束。
    - 若显示缺失项（通常是 apiKey / baseUrl / imageModel / videoModel 全部缺失）：继续第 2 步。
    - 若出现 **provider 未设置警告**：即使其他项齐全也要引导——单独问用户所用厂商（baseUrl 是 `apihub.agnes-ai.com` 时建议 `provider=agnes`；OpenAI 兼容网关用 `openai`），确认后用 `configure_media` 补写 provider，再结束。provider 缺失时请求会按 openai 兼容形态发送，Agnes 官方的图生图参数、宽高比会不生效。
    - **若 `media_config` 工具不可用**（插件 MCP 未加载，详见下方「MCP 不可用时的降级路径」）：直接走降级路径，不要反复重试工具；降级读取配置文件时同样要检查 `provider` 字段是否存在。
-2. **一次性向用户问清以下四项**（在同一条回复里列全，不要逐条追问；插件不代填任何值，用户给什么写什么）：
-   - **provider**：`agnes`（Agnes 官方）/ `openai`（OpenAI 兼容网关）/ `custom`（端点全手动）
-   - **baseUrl**：接口地址。参考提示：Agnes 官方为 `https://apihub.agnes-ai.com`；用其他厂商就填对方文档给的地址
-   - **apiKey**：用户的 Key。参考提示：Agnes 的 Key 在 platform.agnes-ai.com 申请，`sk-` 开头。提醒：通过对话传入会留在对话记录里；更稳妥的方式是插件详情配置区或配置文件
-   - **imageModel / videoModel**：模型 ID。参考提示：Agnes 官方常用 `agnes-image-2.5-flash` / `agnes-video-2.5-flash`；其他厂商用对方提供的模型 ID
-   - 以上参考提示仅作为给用户的**可复制参考**，必须等用户明确给出各值后再写入；用户没给的一律留空，**禁止用参考值代替用户输入**。
-   - （可选）多模型兜底 `imageModels` / `videoModels`（最多 3 个）、跨厂商候选链 `chains`（最多 3 项）——只在高可用场景需要，用户不提就不问。
+2. **按选择收集，最少提问**：
+   - **Agnes 官方**：只需要用户提供 **API Key**（sk- 开头）。其余采用 Agnes 官方对应值（在回复中列出供确认）：`baseUrl=https://apihub.agnes-ai.com`、`provider=agnes`、`imageModels=["agnes-image-2.5-flash"]`、`videoModels=["agnes-video-2.5-flash"]`；用户没异议就直接写入，不用逐项确认。
+   - **其他厂商**：再问 **baseUrl**、**apiKey**、**imageModel / videoModel**（provider 按形态判断：OpenAI 兼容网关用 `openai`，端点特殊用 `custom`）。
+   - 无论哪种，都提醒一句：Key 通过对话传入会留在对话记录里；更稳妥的方式是插件详情配置区或配置文件。
+   - （可选）多模型兜底 `imageModels` / `videoModels`（最多 3 个）、跨厂商候选链 `chains`（最多 3 项）——只在高可用场景需要，用户不提就不问；也提示这两个兜底链现在可以直接在插件详情配置区用逗号分隔填写。
 3. 调用 `configure_media` 把确认的值写入配置。
 4. 再次调用 `media_config` 确认无缺失项，向用户汇报配置结果（Key 脱敏显示），并告知：现在可以直接说「生成一张图片」或「生成一段视频」了；中途修改配置用 `/agnes-media:config` 命令或直接说「改配置」。
 

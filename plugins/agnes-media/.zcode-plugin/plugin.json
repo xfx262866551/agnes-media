@@ -1,10 +1,8 @@
 {
   "name": "agnes-media",
-  "version": "0.7.2",
+  "version": "0.8.0",
   "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；适配任意 OpenAI 兼容厂商，插件配置区或 /agnes-media:init 一次配置永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
   "author": { "name": "xfx262866551" },
-  "mcpServers": ".mcp.json",
-  "hooks": "./hooks/hooks.json",
   "commands": "./commands",
   "skills": "./skills",
   "userConfig": {
@@ -20,18 +18,28 @@
       "type": "string"
     },
     "provider": {
-      "title": "厂商形态",
-      "description": "agnes=Agnes 官方（推荐）/ openai=OpenAI 兼容网关 / custom=端点全手动",
+      "title": "接口格式（厂商形态）",
+      "description": "你的接口是哪种格式？agnes=Agnes 官方 / openai=OpenAI 兼容（大多数厂商和中转站）/ custom=端点全手动",
       "type": "string"
     },
     "imageModel": {
       "title": "图片模型",
-      "description": "如 agnes-image-2.5-flash（Agnes 官方）或厂商提供的模型 ID；多个用逗号分隔可做兜底链",
+      "description": "当前主用的图片模型 ID，如 agnes-image-2.5-flash（Agnes 官方）或厂商提供的模型 ID",
       "type": "string"
     },
     "videoModel": {
       "title": "视频模型",
-      "description": "如 agnes-video-2.5-flash（Agnes 官方）或厂商提供的模型 ID；多个用逗号分隔可做兜底链",
+      "description": "当前主用的视频模型 ID，如 agnes-video-2.5-flash（Agnes 官方）或厂商提供的模型 ID",
+      "type": "string"
+    },
+    "imageModels": {
+      "title": "图片模型兜底链（可选）",
+      "description": "逗号分隔最多 3 个，如 agnes-image-2.5-flash,agnes-image-2.1-flash；主模型 429/超时/不通时自动切下一个。留空则只用上面的单模型",
+      "type": "string"
+    },
+    "videoModels": {
+      "title": "视频模型兜底链（可选）",
+      "description": "逗号分隔最多 3 个；主模型失败时自动切下一个。留空则只用上面的单模型",
       "type": "string"
     },
     "saveDir": {
