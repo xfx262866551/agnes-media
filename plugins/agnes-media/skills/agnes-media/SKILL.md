@@ -7,24 +7,29 @@ description: 生成图片与视频（文生图、图生图、图片编辑、多�
 
 通过 MCP 工具调用图片/视频生成接口。**本插件没有任何内置默认 baseUrl、apiKey、模型**——所有连接信息由用户配置提供，配置一次后长期生效，中途可改。
 
-## 第一次使用：初始化配置（必须）
+## 第一次使用：初始化配置（一次性）
 
-会话开始时若注入了 `[agnes-media] 尚未完成初始化配置` 的上下文，或调用 `media_config` 显示缺少项，按下面流程引导：
+插件提供初始化命令 **`/agnes-media:init`**（安装后只需运行一次）。会话开始时若注入 `[agnes-media] 尚未完成初始化配置` 上下文，优先引导用户运行该命令；命令流程：`media_config` 查缺失 → 一次性问清 provider/baseUrl/apiKey/模型 → `configure_media` 写入 → 复查确认。配置写入用户级配置文件后**永久生效，无需每次配置**。
 
-1. 调用 `media_config` 确认缺少哪些项（通常是 apiKey / baseUrl / imageModel / videoModel 全部）。
-2. 询问用户并确认以下信息（一次问清，不要逐条追问）：
-   - **provider**：`agnes`（Agnes 官方形态）/ `openai`（OpenAI 兼容网关）/ `custom`（端点全手动）；
-   - **baseUrl**：接口地址，如 `https://apihub.agnes-ai.com` 或其他厂商地址；
-   - **apiKey**：用户的 Key；
-   - **imageModel / videoModel**：厂商提供的模型 ID（Agnes 常用 `agnes-image-2.5-flash`、`agnes-video-2.5-flash`）。
-3. 调用 `configure_media` 把这些值写入配置（立即生效，无需重启）。
-4. 再次 `media_config` 确认无缺失项，然后继续用户的生成请求。
+若用户不用命令、直接要求生成图片/视频，按同样流程就地引导（见下）。
 
-**Key 的安全提示**：通过对话传给 `configure_media` 的 apiKey 会留在对话记录里。提醒用户：也可自己创建配置文件 `~/.agnes-media/config.json`（Windows：`C:\Users\<用户名>\.agnes-media\config.json`）或设置环境变量 `AGNES_API_KEY` / `AGNES_BASE_URL`（环境变量优先级高于配置文件）。不要在回复里复述完整 Key。
+- **未配置 Key 时**：不要反复重试生成工具。引导用户任选其一：
+  1. 运行 `/agnes-media:init` 命令（推荐）；
+  2. 创建/编辑配置文件 `~/.agnes-media/config.json`（Windows：`C:\Users\<用户名>\.agnes-media\config.json`）：
+     ```json
+     {
+       "apiKey": "用户的Key",
+       "baseUrl": "https://apihub.agnes-ai.com",
+       "imageModel": "agnes-image-2.5-flash",
+       "videoModel": "agnes-video-2.5-flash"
+     }
+     ```
+  3. 设置环境变量 `AGNES_API_KEY`（可选 `AGNES_BASE_URL` 覆盖地址，优先级高于配置文件）。
+- 用户临时在对话里给出 Key 时，可用工具参数 `apiKey` 一次性调用，并提醒这会把 Key 写进对话记录，建议尽快改为配置文件。
 
 ## 中途修改配置
 
-用户说"换 Key / 换地址 / 换模型 / 换厂商"时，直接再次调用 `configure_media`（只传要改的字段，增量合并）；支持 `unset:["字段"]` 移除某项、`reset:true` 清空重来。改完用 `media_config` 回读确认。
+用户说"换 Key / 换地址 / 换模型 / 换厂商"时：引导运行 **`/agnes-media:config`** 命令，或直接再次调用 `configure_media`（只传要改的字段，增量合并）；支持 `unset:["字段"]` 移除某项、`reset:true` 清空重来。改完用 `media_config` 回读确认。
 
 ## 适配其他厂商
 

@@ -14,11 +14,9 @@ try {
     process.stdout.write(
       [
         "[agnes-media] 尚未完成初始化配置（缺少：" + cfg.missing.join("、") + "）。",
-        "本插件不内置默认 baseUrl / apiKey / 模型。当用户在本会话中要求生成图片或视频时：",
-        "1. 先调用 media_config 确认缺失项；",
-        "2. 询问用户使用哪个厂商与配置：provider（agnes=Agnes 官方 / openai=OpenAI 兼容 / custom=自定义端点）、baseUrl、apiKey、imageModel、videoModel；",
-        "3. 调用 configure_media 写入配置（立即生效），然后再执行生成；",
-        "4. 中途修改配置同样用 configure_media；涉及 Key 时提醒用户也可手写配置文件或设置环境变量（AGNES_API_KEY / AGNES_BASE_URL）。",
+        "本插件不内置默认 baseUrl / apiKey / 模型。请引导用户运行插件的初始化命令 /agnes-media:init（安装后只需运行一次，配置写入用户级配置文件后永久生效）；",
+        "如果用户没有使用命令而是直接要求生成图片/视频，则按 SKILL 流程引导配置（media_config 查缺失 → 询问厂商/baseUrl/apiKey/模型 → configure_media 写入）。",
+        "中途修改配置：/agnes-media:config 命令，或直接再次调用 configure_media。",
       ].join("\n")
     );
   }
