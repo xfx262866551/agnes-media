@@ -102,6 +102,12 @@ description: 生成图片与视频（文生图、图生图、图片编辑、多�
 - `keyframe`：至少传 `first_frame` 或 `last_frame` 之一。`reference`：`images`≤5、`audios`≤3，至少一项非空。
 - **异步流程**：`generate_video` 默认 `wait=false` 立即返回 `video_id`。之后用 `video_status` 轮询（间隔约 2 秒，最多约 5 分钟），或首次调用就 `wait=true`（可配 `poll_timeout_ms`）。`status=completed` 读 `url`；`failed` 如实转告原因。
 
+## 配合使用的本地 skill / 子代理（如已安装）
+
+- **`agnes-image`（去AI味规范）**：写提示词时套用其规范——禁止项写进正向句（Agnes 无 negative_prompt）、风格词具体到媒介、写实人像必须写皮肤纹理/孔隙/不对称/乱发丝；尤其用户抱怨"AI味/塑料感/太假"时先套规范再重生成。
+- **`vision-helper`（子代理）/ `vision-skills`**：生成成功后用它看图复核（AI 痕迹、构图、细节），再交给用户。
+- **`agnes-video-watch`**：旧版独立进度窗口（旧模型参数、自建任务），已被本插件的 `video_status` 取代——如仍安装，建议提示用户删除。
+
 ## 输出与展示规范（必须遵守）
 
 1. **保存位置**：默认存 `<当前工作目录>/ZcodeImage`。请求绑定具体项目时传 `save_dir=<项目根目录>/ZcodeImage`；无法确定项目根时先问用户存哪个项目，不要静默落到非项目目录。
