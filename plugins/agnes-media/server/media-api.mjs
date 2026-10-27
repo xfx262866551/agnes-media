@@ -169,6 +169,17 @@ export function normalizeBaseUrl(url) {
   return String(url || "").trim().replace(/\/+$/, "");
 }
 
+// 用户常把 /v1 一起粘进 Base URL（如 https://host/v1），而内置端点以 /v1/ 开头；
+// 拼接时去重，两种写法都兼容，避免出现 /v1/v1/...
+export function joinEndpoint(baseUrl, endpoint) {
+  const base = String(baseUrl || "");
+  const path = String(endpoint || "");
+  if (/\/v1$/i.test(base) && /^\/v1\//i.test(path)) {
+    return base.slice(0, -3) + path;
+  }
+  return base + path;
+}
+
 export function maskKey(key) {
   if (!key) return null;
   if (key.length <= 8) return "****";
@@ -369,7 +380,7 @@ function extractApiError(json, text, status) {
 }
 
 async function apiRequest(cfg, path, { method = "GET", body, query, timeoutMs = 300000 } = {}) {
-  const url = new URL(cfg.baseUrl + path);
+  const url = new URL(joinEndpoint(cfg.baseUrl, path));
   if (query) {
     for (const [k, v] of Object.entries(query)) url.searchParams.set(k, String(v));
   }

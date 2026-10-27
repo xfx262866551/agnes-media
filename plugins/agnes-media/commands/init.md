@@ -13,7 +13,12 @@ description: 初始化 Agnes Media 插件配置（首次安装后运行一次）
 
 ## 执行步骤
 
-0. **直接向用户收集，不要问"厂商形态"**：接口格式由插件根据 Base URL 自动判断（Agnes 域名→agnes，其余→OpenAI 兼容），用户不需要理解或填写。在一个回复里问清：**Base URL、API Key、图片模型、视频模型**（每项附可复制的参考值）。若 AskUserQuestion 工具可用且用户需要帮助选择，也可用它提供参考选项。
+0. **必须用交互选择器引导**：调用 AskUserQuestion 工具（渲染为可点选卡片 + Other 自由输入），一次发起最多 4 个问题（示意）：
+   - Q1「Base URL」：选项「Agnes 官方」（描述给地址）/「其他厂商」（提示在 Other 里粘贴地址）；
+   - Q2「图片模型」：选项 agnes-image-2.5-flash / agnes-image-2.1-flash（其他模型走 Other）；
+   - Q3「视频模型」：选项 agnes-video-2.5-flash（其他走 Other）；
+   - Q4「API Key」：选项「稍后我自己填」（配置文件生成后自己补 Key，不留存对话记录）/「现在输入」（在 Other 里粘贴）。
+   AskUserQuestion 不可用时才退回正文一次性提问。**厂商形态不要问**——接口格式按 Base URL 自动判断。
 1. 调用 `media_config` 查看当前状态。
    - 若显示**无缺失项**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（接口格式会显示"自动判断"结果，API Key 脱敏），结束。
    - 若缺少 apiKey（最常见）：引导用户运行本命令写入配置文件（立即生效），或手动编辑 `~/.agnes-media/config.json` 的 apiKey，或设环境变量 `AGNES_API_KEY`；**不要引导去配置区填 Key**（当前版本不支持填写敏感值）。
