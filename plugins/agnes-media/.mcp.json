@@ -3,7 +3,7 @@
     "agnes-media": {
       "type": "stdio",
       "command": "node",
-      "args": ["${CLAUDE_PLUGIN_ROOT}/server/index.mjs"],
+      "args": ["${ZCODE_PLUGIN_ROOT}/server/index.mjs"],
       "env": {
         "AGNES_API_KEY": "${user_config.apiKey}",
         "AGNES_BASE_URL": "${user_config.baseUrl}",
@@ -14,7 +14,7 @@
         "AGNES_MEDIA_SAVE_DIR": "${user_config.saveDir}"
       },
       "enabled": true,
-      "timeoutMs": 30000
+      "timeoutMs": 120000
     }
   }
 }
