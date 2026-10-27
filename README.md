@@ -2,7 +2,7 @@
 
 > ZCode 插件：一句话生成图片和视频。文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频，自定义 API Key 与 Base URL，跨厂商容灾。
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.7.0-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.7.1-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
 
 给 [ZCode](https://zcode.ai) 装一个插件，以后"画张图""把这个视频做出来"都是一句话的事。基于 [Agnes AI](https://agnes-ai.com) 的图片/视频生成 API 设计，同时兼容 OpenAI 兼容形态的其他厂商（智谱、各类中转站等）。
 
@@ -33,15 +33,18 @@
 
 > 提示：插件 MCP 服务器在 ZCode 启动时注册——安装/更新插件或改完配置区后，需**完全退出 ZCode（菜单 → 退出）再重开**才生效；可在 **设置 → MCP → Plugin MCP 服务器** 分组确认 `agnes-media` 已出现。
 
-## 配置（无默认值，全部自定义）
+## 配置（无默认值，全部自己填）
 
-三种方式，优先级从高到低：
+按推荐顺序四种方式（实际优先级：调用参数 > 环境变量（含配置区注入）> 配置文件）：
 
-1. **工具配置（推荐）**：让 Agent 调用 `configure_media`，或手写配置文件：
+1. **插件详情配置区（推荐）**：设置 → 插件 → 本插件详情 → **配置** 区，可填 6 项：`apiKey`、`baseUrl`、`provider`、`imageModel`、`videoModel`、`saveDir`（生成文件保存目录）。保存后**完全退出并重开 ZCode** 生效（值以环境变量注入 MCP 服务器）；
+2. **初始化命令**：`/agnes-media:init` 一次性问清并写入；`/agnes-media:config` 中途修改——写配置文件，**立即生效无需重启**：
    - Windows：`C:\Users\<用户名>\.agnes-media\config.json`
    - macOS/Linux：`~/.agnes-media/config.json`
-2. **环境变量**：`AGNES_API_KEY`、`AGNES_BASE_URL`（优先级高于配置文件）；模型链 `AGNES_IMAGE_MODELS` / `AGNES_VIDEO_MODELS`（逗号分隔）。
-3. **一次性参数**：调用时传 `apiKey`/`baseUrl`（会留在对话记录，不推荐）。
+3. **环境变量**：`AGNES_API_KEY`、`AGNES_BASE_URL`、`AGNES_MEDIA_PROVIDER`、`AGNES_IMAGE_MODEL` / `AGNES_VIDEO_MODEL`（模型链用 `AGNES_IMAGE_MODELS` / `AGNES_VIDEO_MODELS`，逗号分隔）；
+4. **一次性参数**：调用时传 `apiKey`/`baseUrl`（会留在对话记录，不推荐）。
+
+配置文件示例（高级字段如模型兜底链 `imageModels`、候选链 `chains`、端点、`saveDir` 都写在这里）：
 
 ```json
 {
@@ -91,8 +94,9 @@ Key 申请（Agnes）：<https://platform.agnes-ai.com/> 注册 → API Keys。
 
 ```
 plugins/agnes-media/
-├─ .zcode-plugin/plugin.json   # 插件清单
-├─ .mcp.json                   # MCP 服务器声明（node server/index.mjs，零依赖）
+├─ .zcode-plugin/plugin.json   # 插件清单（含 userConfig 配置区声明）
+├─ .mcp.json                   # MCP 服务器声明（node server/index.mjs，零依赖；env 接收配置区的值）
+├─ commands/                   # /agnes-media:init 初始化、/agnes-media:config 改配置
 ├─ hooks/                      # SessionStart：检测未配置并引导初始化
 ├─ server/
 │  ├─ index.mjs                # MCP stdio 服务器（JSON-RPC，零第三方依赖）
