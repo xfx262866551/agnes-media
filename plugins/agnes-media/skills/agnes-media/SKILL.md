@@ -7,25 +7,15 @@ description: 生成图片与视频（文生图、图生图、图片编辑、多�
 
 通过 MCP 工具调用图片/视频生成接口。**本插件没有任何内置默认 baseUrl、apiKey、模型**——所有连接信息由用户配置提供，配置一次后长期生效，中途可改。
 
-## 第一次使用：初始化配置（一次性）
+## 第一次使用：初始化配置（一次性，三选一）
 
-插件提供初始化命令 **`/agnes-media:init`**（安装后只需运行一次）。会话开始时若注入 `[agnes-media] 尚未完成初始化配置` 上下文，优先引导用户运行该命令；命令流程：`media_config` 查缺失 → 一次性问清 provider/baseUrl/apiKey/模型 → `configure_media` 写入 → 复查确认。配置写入用户级配置文件后**永久生效，无需每次配置**。
+配置一次永久生效，按推荐顺序：
 
-若用户不用命令、直接要求生成图片/视频，按同样流程就地引导（见下）。
+1. **插件详情配置区（官方机制，最简单）**：设置 → 插件 → 「Agnes 图片视频生成」→ 详情 → **配置** 区，填写 API Key、Base URL（Agnes 官方为 `https://apihub.agnes-ai.com`）、厂商形态、模型，保存后**完全退出并重开 ZCode** 生效。配置区的值会以环境变量注入 MCP 服务器，优先级高于配置文件。
+2. **初始化命令**：`/agnes-media:init`——`media_config` 查缺失 → 一次性问清 → `configure_media` 写入配置文件。
+3. **配置文件 / 环境变量**：手写 `~/.agnes-media/config.json`（Windows：`C:\Users\<用户名>\.agnes-media\config.json`）或设置 `AGNES_API_KEY` / `AGNES_BASE_URL`。
 
-- **未配置 Key 时**：不要反复重试生成工具。引导用户任选其一：
-  1. 运行 `/agnes-media:init` 命令（推荐）；
-  2. 创建/编辑配置文件 `~/.agnes-media/config.json`（Windows：`C:\Users\<用户名>\.agnes-media\config.json`）：
-     ```json
-     {
-       "apiKey": "用户的Key",
-       "baseUrl": "https://apihub.agnes-ai.com",
-       "imageModel": "agnes-image-2.5-flash",
-       "videoModel": "agnes-video-2.5-flash"
-     }
-     ```
-  3. 设置环境变量 `AGNES_API_KEY`（可选 `AGNES_BASE_URL` 覆盖地址，优先级高于配置文件）。
-- 用户临时在对话里给出 Key 时，可用工具参数 `apiKey` 一次性调用，并提醒这会把 Key 写进对话记录，建议尽快改为配置文件。
+若用户不用命令、直接要求生成图片/视频且配置缺失，按上述顺序就地引导，不要反复重试生成工具。
 
 ## 中途修改配置
 

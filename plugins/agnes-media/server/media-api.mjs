@@ -134,6 +134,13 @@ function splitList(value) {
     .filter(Boolean);
 }
 
+// 环境变量守卫：插件 userConfig 未填写时，MCP env 里可能残留未解析的 ${user_config.x} 占位符，视为未设置
+function cleanEnv(value) {
+  const v = String(value || "").trim();
+  if (!v || v.includes("${")) return "";
+  return v;
+}
+
 // 模型链：数组或逗号分隔字符串，按优先级去重，最多 3 个（第 2/3 个不强制）
 function modelChain(...candidates) {
   const out = [];
@@ -199,25 +206,25 @@ export function resolveConfig(params = {}) {
   const env = process.env;
   const data = file.data;
 
-  const apiKey = pickSource(params.apiKey, "param", env.AGNES_API_KEY, "env", env.AGNES_MEDIA_API_KEY, "env", data.apiKey, "file");
+  const apiKey = pickSource(params.apiKey, "param", cleanEnv(env.AGNES_API_KEY), "env", cleanEnv(env.AGNES_MEDIA_API_KEY), "env", data.apiKey, "file");
   const baseUrlPick = pickSource(
     params.baseUrl,
     "param",
-    env.AGNES_BASE_URL,
+    cleanEnv(env.AGNES_BASE_URL),
     "env",
-    env.AGNES_MEDIA_BASE_URL,
+    cleanEnv(env.AGNES_MEDIA_BASE_URL),
     "env",
     data.baseUrl,
     "file"
   );
 
-  const providerPick = pickSource(params.provider, "param", data.provider, "file");
+  const providerPick = pickSource(params.provider, "param", cleanEnv(env.AGNES_MEDIA_PROVIDER), "env", data.provider, "file");
   const provider = PROVIDERS.includes(providerPick.value) ? providerPick.value : "";
   const preset = provider ? PROVIDER_PRESETS[provider] : null;
 
   // 模型兜底链（最多 3 个）：调用参数 > 环境变量 > 配置文件；单值 imageModel/videoModel 视为链首
-  const envImageModels = env.AGNES_IMAGE_MODELS || env.AGNES_IMAGE_MODEL || "";
-  const envVideoModels = env.AGNES_VIDEO_MODELS || env.AGNES_VIDEO_MODEL || "";
+  const envImageModels = cleanEnv(env.AGNES_IMAGE_MODELS) || cleanEnv(env.AGNES_IMAGE_MODEL);
+  const envVideoModels = cleanEnv(env.AGNES_VIDEO_MODELS) || cleanEnv(env.AGNES_VIDEO_MODEL);
   const imageModels = modelChain(params.imageModels, params.imageModel, envImageModels, data.imageModels, data.imageModel);
   const videoModels = modelChain(params.videoModels, params.videoModel, envVideoModels, data.videoModels, data.videoModel);
   const imageModelPick = pickSource(imageModels[0], imageModels.length ? (data.imageModels || data.imageModel ? "file" : "env/param") : "none");

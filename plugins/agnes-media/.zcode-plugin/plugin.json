@@ -1,10 +1,38 @@
 {
   "name": "agnes-media",
-  "version": "0.5.1",
-  "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；安装后跑一次初始化命令即永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
+  "version": "0.6.0",
+  "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；插件详情配置区填一次 Key 即永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
   "author": { "name": "xfx262866551" },
-  "mcpServers": "./.mcp.json",
+  "mcpServers": ".mcp.json",
   "hooks": "./hooks/hooks.json",
   "commands": "./commands",
-  "skills": "./skills"
+  "skills": "./skills",
+  "userConfig": {
+    "apiKey": {
+      "title": "Agnes API Key",
+      "description": "你的 API Key（sk-开头）。也可不改这里，用 ~/.agnes-media/config.json 或环境变量 AGNES_API_KEY 提供三方任选其一",
+      "type": "string",
+      "sensitive": true
+    },
+    "baseUrl": {
+      "title": "API Base URL",
+      "description": "接口地址。Agnes 官方填 https://apihub.agnes-ai.com；其他 OpenAI 兼容厂商填对方地址",
+      "type": "string"
+    },
+    "provider": {
+      "title": "厂商形态",
+      "description": "agnes=Agnes 官方（推荐）/ openai=OpenAI 兼容网关 / custom=端点全手动",
+      "type": "string"
+    },
+    "imageModel": {
+      "title": "图片模型",
+      "description": "如 agnes-image-2.5-flash（Agnes 官方）或厂商提供的模型 ID；多个用逗号分隔可做兜底链",
+      "type": "string"
+    },
+    "videoModel": {
+      "title": "视频模型",
+      "description": "如 agnes-video-2.5-flash（Agnes 官方）或厂商提供的模型 ID；多个用逗号分隔可做兜底链",
+      "type": "string"
+    }
+  }
 }

@@ -4,7 +4,11 @@ description: 初始化 Agnes Media 插件配置（首次安装后运行一次）
 
 # Agnes Media 初始化配置
 
-本命令**只需在插件安装后运行一次**。配置写入用户级配置文件（`~/.agnes-media/config.json`，Windows 为 `C:\Users\<用户名>\.agnes-media\config.json`），之后永久生效，无需每次配置。
+本命令**只需在插件安装后运行一次**。配置一次永久生效，三种方式按推荐顺序（也把这个选择告诉用户）：
+
+1. **插件详情配置区（最简单）**：设置 → 插件 → 本插件详情 → **配置** 区填写 API Key / Base URL / 厂商形态 / 模型，保存后完全退出并重开 ZCode 生效；
+2. **本命令写入配置文件**：`~/.agnes-media/config.json`（Windows 为 `C:\Users\<用户名>\.agnes-media\config.json`），下次调用立即生效；
+3. **环境变量**：`AGNES_API_KEY` / `AGNES_BASE_URL`（优先级高于配置文件）。
 
 ## 执行步骤
 
