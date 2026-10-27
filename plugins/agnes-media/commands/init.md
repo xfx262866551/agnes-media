@@ -17,10 +17,12 @@ description: 初始化 Agnes Media 插件配置（首次安装后运行一次）
    - 若显示**无缺失项**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（API Key 脱敏），结束。
    - 若显示缺失项（通常是 apiKey / baseUrl / imageModel / videoModel 全部缺失）：继续第 2 步。
    - **若 `media_config` 工具不可用**（插件 MCP 未加载，详见下方「MCP 不可用时的降级路径」）：直接走降级路径，不要反复重试工具。
-2. **最少提问**：先只问一句「用 Agnes 官方（推荐）还是其他厂商？」，然后：
-   - **Agnes 官方**：只需要用户提供 **API Key**（sk- 开头）。其余直接采用 Agnes 官方建议值并在回复中列出：`baseUrl=https://apihub.agnes-ai.com`、`provider=agnes`、`imageModels=["agnes-image-2.5-flash"]`、`videoModels=["agnes-video-2.5-flash"]`；用户没异议就直接写入，不用逐项确认。
-   - **其他厂商**：再问 **baseUrl**、**apiKey**、**imageModel / videoModel**（provider 按形态判断：OpenAI 兼容网关用 `openai`，端点特殊用 `custom`）。
-   - 无论哪种，都提醒一句：Key 通过对话传入会留在对话记录里；更稳妥的方式是插件详情配置区或配置文件。
+2. **一次性向用户问清以下四项**（在同一条回复里列全，不要逐条追问；插件不代填任何值，用户给什么写什么）：
+   - **provider**：`agnes`（Agnes 官方）/ `openai`（OpenAI 兼容网关）/ `custom`（端点全手动）
+   - **baseUrl**：接口地址。参考提示：Agnes 官方为 `https://apihub.agnes-ai.com`；用其他厂商就填对方文档给的地址
+   - **apiKey**：用户的 Key。参考提示：Agnes 的 Key 在 platform.agnes-ai.com 申请，`sk-` 开头。提醒：通过对话传入会留在对话记录里；更稳妥的方式是插件详情配置区或配置文件
+   - **imageModel / videoModel**：模型 ID。参考提示：Agnes 官方常用 `agnes-image-2.5-flash` / `agnes-video-2.5-flash`；其他厂商用对方提供的模型 ID
+   - 以上参考提示仅作为给用户的**可复制参考**，必须等用户明确给出各值后再写入；用户没给的一律留空，**禁止用参考值代替用户输入**。
    - （可选）多模型兜底 `imageModels` / `videoModels`（最多 3 个）、跨厂商候选链 `chains`（最多 3 项）——只在高可用场景需要，用户不提就不问。
 3. 调用 `configure_media` 把确认的值写入配置。
 4. 再次调用 `media_config` 确认无缺失项，向用户汇报配置结果（Key 脱敏显示），并告知：现在可以直接说「生成一张图片」或「生成一段视频」了；中途修改配置用 `/agnes-media:config` 命令或直接说「改配置」。
