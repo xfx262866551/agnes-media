@@ -14,9 +14,10 @@ description: 初始化 Agnes Media 插件配置（首次安装后运行一次）
 
 0. **收集信息时直接在回复正文中向用户提问**（一次性列全要问的内容），不要调用交互式工具、不要等待、不要循环重试。
 1. 调用 `media_config` 查看当前状态。
-   - 若显示**无缺失项**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（API Key 脱敏），结束。
+   - 若显示**无缺失项且无 provider 警告**：告诉用户「已完成初始化，无需重复配置」，列出当前配置（API Key 脱敏），结束。
    - 若显示缺失项（通常是 apiKey / baseUrl / imageModel / videoModel 全部缺失）：继续第 2 步。
-   - **若 `media_config` 工具不可用**（插件 MCP 未加载，详见下方「MCP 不可用时的降级路径」）：直接走降级路径，不要反复重试工具。
+   - 若出现 **provider 未设置警告**：即使其他项齐全也要引导——单独问用户所用厂商（baseUrl 是 `apihub.agnes-ai.com` 时建议 `provider=agnes`；OpenAI 兼容网关用 `openai`），确认后用 `configure_media` 补写 provider，再结束。provider 缺失时请求会按 openai 兼容形态发送，Agnes 官方的图生图参数、宽高比会不生效。
+   - **若 `media_config` 工具不可用**（插件 MCP 未加载，详见下方「MCP 不可用时的降级路径」）：直接走降级路径，不要反复重试工具；降级读取配置文件时同样要检查 `provider` 字段是否存在。
 2. **一次性向用户问清以下四项**（在同一条回复里列全，不要逐条追问；插件不代填任何值，用户给什么写什么）：
    - **provider**：`agnes`（Agnes 官方）/ `openai`（OpenAI 兼容网关）/ `custom`（端点全手动）
    - **baseUrl**：接口地址。参考提示：Agnes 官方为 `https://apihub.agnes-ai.com`；用其他厂商就填对方文档给的地址

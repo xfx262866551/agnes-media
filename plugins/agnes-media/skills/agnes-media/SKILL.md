@@ -23,6 +23,8 @@ description: 生成图片与视频（文生图、图生图、图片编辑、多�
 
 ## 适配其他厂商
 
+⚠️ **provider 未设置时按 openai 兼容形态发送请求**。用 Agnes 官方接口（baseUrl 含 apihub.agnes-ai.com）必须设 `provider=agnes`，否则图生图参数、宽高比等不生效——`media_config` 会出现 provider 警告，看到就引导用户补写。
+
 | 厂商形态 | provider | 说明 |
 | - | - | - |
 | Agnes 官方 | `agnes` | 图生图走 `extra_body.image`，视频查询走 `/agnesapi?video_id=...&model_name=...`；keyframe/reference 视频模式仅此形态支持 |

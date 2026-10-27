@@ -268,6 +268,9 @@ function formatConfigStatus(candidates) {
     lines.push("", `⚠️ 配置不完整，缺少：${cfg.missing.join("、")}`);
     lines.push("请调用 configure_media 完成初始化（provider/baseUrl/apiKey/imageModel/videoModel），或让用户手写配置文件/设置环境变量。");
   }
+  if (!cfg.provider) {
+    lines.push("", "⚠️ 未设置 provider（厂商形态）：当前按 openai 兼容形态发送请求。若 baseUrl 是 Agnes 官方（apihub.agnes-ai.com），必须设置 provider=agnes，否则图生图参数、宽高比等不生效。可用 configure_media 写入。");
+  }
   return lines.join("\n");
 }
 
