@@ -2,7 +2,7 @@
 
 > ZCode 插件：一句话生成图片和视频。文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频，自定义 API Key 与 Base URL，跨厂商容灾。
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.8.4-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.8.5-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
 
 给 [ZCode](https://zcode.ai) 装一个插件，以后"画张图""把这个视频做出来"都是一句话的事。基于 [Agnes AI](https://agnes-ai.com) 的图片/视频生成 API 设计，同时兼容 OpenAI 兼容形态的其他厂商（智谱、各类中转站等）。
 
@@ -25,11 +25,10 @@
 1. ZCode 里打开 **插件市场 → 添加 → 添加插件市场**；
 2. 粘贴本仓库地址（或本地解压后的目录）；
 3. 在 **个人** 找到「Agnes 图片视频生成」，点击 **安装**；
-4. **配置一次（三选一，永久生效）**：
-   - **插件详情配置区（推荐）**：设置 → 插件 → 本插件详情 → **配置** 区，填 API Key、Base URL、厂商形态、模型，保存后**完全退出并重开 ZCode** 生效；
-   - 运行一次初始化命令 **`/agnes-media:init`**，按引导写入配置文件；
-   - 手写配置文件 `~/.agnes-media/config.json` 或设置环境变量 `AGNES_API_KEY` / `AGNES_BASE_URL`；
-5. 直接说「画一张赛博朋克城市夜景」或「生成一段 5 秒海浪视频」即可。中途换 Key/换厂商用 `/agnes-media:config` 或改配置区后重启。
+4. **配置一次（永久生效）**：
+   - **API Key**：运行 **`/agnes-media:init`** 按引导写入配置文件，或手写 `~/.agnes-media/config.json`，或设环境变量 `AGNES_API_KEY`（ZCode 配置区暂不支持直接填写敏感值，API Key 只在配置区显示脱敏状态）；
+   - **Base URL / 模型 / 兜底链 / 保存目录**（非敏感项）：可在 **插件详情配置区** 填写，保存后**完全退出并重开 ZCode** 生效；也可全部写进配置文件；
+5. 直接说「画一张赛博朋克城市夜景」或「生成一段 5 秒海浪视频」即可。中途换 Key/换厂商用 `/agnes-media:config` 或改配置文件。
 
 > 提示：插件 MCP 服务器在 ZCode 启动时注册——安装/更新插件或改完配置区后，需**完全退出 ZCode（菜单 → 退出）再重开**才生效；可在 **设置 → MCP → Plugin MCP 服务器** 分组确认 `agnes-media` 已出现。
 
@@ -37,7 +36,7 @@
 
 按推荐顺序四种方式（实际优先级：调用参数 > 环境变量（含配置区注入）> 配置文件）：
 
-1. **插件详情配置区（推荐）**：设置 → 插件 → 本插件详情 → **配置** 区，可填 6 项：`apiKey`、`baseUrl`、`provider`、`imageModel`、`videoModel`、`saveDir`（生成文件保存目录）。保存后**完全退出并重开 ZCode** 生效（值以环境变量注入 MCP 服务器）；
+1. **插件详情配置区（仅非敏感项）**：设置 → 插件 → 本插件详情 → **配置** 区，可填 `baseUrl`、`imageModel`、`videoModel`、两个兜底链、`saveDir`。保存后**完全退出并重开 ZCode** 生效（值以环境变量注入 MCP 服务器）。⚠️ `apiKey` 是敏感字段，当前版本配置区**填不了**，只用 API Key 的另外两条路径；
 2. **初始化命令**：`/agnes-media:init` 一次性问清并写入；`/agnes-media:config` 中途修改——写配置文件，**立即生效无需重启**：
    - Windows：`C:\Users\<用户名>\.agnes-media\config.json`
    - macOS/Linux：`~/.agnes-media/config.json`

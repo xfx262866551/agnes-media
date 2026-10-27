@@ -11,7 +11,7 @@ description: 生成图片与视频（文生图、图生图、图片编辑、多�
 
 配置一次永久生效，按推荐顺序：
 
-1. **插件详情配置区（官方机制，最简单）**：设置 → 插件 → 「Agnes 图片视频生成」→ 详情 → **配置** 区，填写 API Key、Base URL（Agnes 官方为 `https://apihub.agnes-ai.com`）、厂商形态、模型，保存后**完全退出并重开 ZCode** 生效。配置区的值会以环境变量注入 MCP 服务器，优先级高于配置文件。
+1. **插件详情配置区（用于非敏感项）**：设置 → 插件 → 本插件详情 → **配置** 区可填 Base URL、图片/视频模型、兜底链（逗号分隔）、保存目录，保存后**完全退出并重开 ZCode** 生效。⚠️ ZCode 当前版本**配置区不支持直接填写 sensitive 字段**（API Key 只会显示脱敏状态），所以 **Key 必须走方式 2 或 3**。
 2. **初始化命令**：`/agnes-media:init`——`media_config` 查缺失 → 一次性问清 → `configure_media` 写入配置文件。
 3. **配置文件 / 环境变量**：手写 `~/.agnes-media/config.json`（Windows：`C:\Users\<用户名>\.agnes-media\config.json`）或设置 `AGNES_API_KEY` / `AGNES_BASE_URL`。
 

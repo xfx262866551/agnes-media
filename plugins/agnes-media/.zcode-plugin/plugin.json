@@ -1,6 +1,6 @@
 {
   "name": "agnes-media",
-  "version": "0.8.4",
+  "version": "0.8.5",
   "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；适配任意 OpenAI 兼容厂商，插件配置区或 /agnes-media:init 一次配置永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
   "author": { "name": "xfx262866551" },
   "commands": "./commands",
@@ -8,7 +8,7 @@
   "userConfig": {
     "apiKey": {
       "title": "API Key",
-      "description": "你所用厂商的 API 密钥（如 Agnes 官方为 sk- 开头）。也可不改这里，用 ~/.agnes-media/config.json 或环境变量 AGNES_API_KEY，三方任选其一",
+      "description": "你所用厂商的 API 密钥（如 Agnes 官方为 sk- 开头）。注意：ZCode 配置区暂不支持直接填写敏感值——请用 /agnes-media:init 或编辑 ~/.agnes-media/config.json 的 apiKey，或设环境变量 AGNES_API_KEY；此处仅显示脱敏状态",
       "type": "string",
       "sensitive": true
     },

@@ -14,9 +14,9 @@ try {
     process.stdout.write(
       [
         "[agnes-media] 尚未完成初始化配置（缺少：" + cfg.missing.join("、") + "）。",
-        "配置只需一次、永久生效。请引导用户任选其一：",
-        "1. 设置 → 插件 → 本插件详情 → 配置区填写（最少只需 API Key + Base URL，接口格式自动判断），保存后完全退出重开 ZCode；",
-        "2. 运行 /agnes-media:init，按引导写入配置文件（立即生效，无需重启）。",
+        "配置只需一次、永久生效。请引导用户：",
+        "1. API Key：运行 /agnes-media:init 写入配置文件（立即生效），或手动编辑 ~/.agnes-media/config.json 的 apiKey（ZCode 配置区暂不支持填敏感值）；",
+        "2. Base URL/模型等非敏感项：可在 设置→插件→本插件详情→配置区 填写（保存后完全退出重开 ZCode 生效）。",
         "若用户直接要求生成图片/视频，按其引导就地配置（media_config 查缺失 → 问 baseUrl/apiKey/模型 → configure_media 写入）。",
       ].join("\n")
     );
