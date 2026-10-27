@@ -420,13 +420,14 @@ async function handleRequest(msg) {
         sendResult(id, {});
         return;
       case "tools/list":
-        sendResult(id, { tools: TOOLS, nextCursor: null });
+        // 不要返回 nextCursor: null —— MCP 客户端 schema 为 z.string().optional()，null 会导致整个工具列表校验失败
+        sendResult(id, { tools: TOOLS });
         return;
       case "prompts/list":
-        sendResult(id, { prompts: [], nextCursor: null });
+        sendResult(id, { prompts: [] });
         return;
       case "resources/list":
-        sendResult(id, { resources: [], nextCursor: null });
+        sendResult(id, { resources: [] });
         return;
       case "tools/call": {
         const toolName = params && params.name;

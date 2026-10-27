@@ -12,7 +12,7 @@
     {
       "name": "agnes-media",
       "source": "./plugins/agnes-media",
-      "version": "0.8.1",
+      "version": "0.8.2",
       "description": "Image & video generation for ZCode: text-to-image, image-to-image, image editing, multi-image composition, text-to-video / keyframe / reference video. No built-in credentials — run /agnes-media:init once after install to configure your own API key & base URL; provider presets for Agnes and OpenAI-compatible gateways; candidate chains (up to 3) fail over across vendors atomically; model fallback chains (up to 3) switch on 429/5xx/timeout/unreachable; optional prompt enhancement. MCP tools: generate_image, edit_image, generate_video, video_status, media_config, configure_media.",
       "displayName": "Media Studio",
       "displayName_i18n": {
