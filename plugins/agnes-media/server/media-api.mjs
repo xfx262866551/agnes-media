@@ -68,6 +68,8 @@ export const CONFIG_KEYS = [
   "imageExtraBody",
   "videoExtraBody",
   "chains",
+  "image",
+  "video",
   "saveDir",
 ];
 
@@ -165,6 +167,44 @@ function firstNonEmpty(...values) {
   return "";
 }
 
+// 请求 URL 安全校验：仅允许 http/https，且拒绝 localhost / 回环 / 私有 / 保留地址（防 SSRF）
+const BLOCKED_HOST_PATTERNS = [
+  /^localhost$/i,
+  /\.localhost$/i,
+  /^127\./,
+  /^0\.0\.0\.0$/,
+  /^10\./,
+  /^192\.168\./,
+  /^169\.254\./,
+  /^172\.(1[6-9]|2\d|3[01])\./,
+  /^100\.(6[4-9]|[7-9]\d|1[01]\d|12[0-7])\./,
+  /^(0|10)\.\d+\.\d+\.\d+$/, // 0.0.0.0/8 段兜底
+  /^\[?::1\]?$/i,
+  /^\[?fc[0-9a-f]{2}:/i,
+  /^\[?fd[0-9a-f]{2}:/i,
+  /^\[?fe[89ab][0-9a-f]:/i,
+];
+
+export function validateRequestUrl(rawUrl) {
+  let u;
+  try {
+    u = new URL(String(rawUrl || ""));
+  } catch {
+    throw new MediaError(`非法 URL：${rawUrl}`, "Base URL / 端点必须是完整地址，如 https://host/path。");
+  }
+  if (!/^https?:$/i.test(u.protocol)) {
+    throw new MediaError(`不支持的协议：${u.protocol}`, "仅允许 http/https。");
+  }
+  const host = u.hostname.toLowerCase();
+  if (BLOCKED_HOST_PATTERNS.some((re) => re.test(host))) {
+    throw new MediaError(
+      `出于安全限制，拒绝请求本机/内网/保留地址：${host}`,
+      "请把 Base URL 指向公网可访问的厂商接口；如确需本地网关，请用用户级 MCP 配置自行封装。"
+    );
+  }
+  return u;
+}
+
 export function normalizeBaseUrl(url) {
   return String(url || "").trim().replace(/\/+$/, "");
 }
@@ -210,12 +250,28 @@ function pickSource(...flat) {
   return { value: "", source: "none" };
 }
 
-// 配置优先级：调用参数 > 环境变量 > 配置文件 > provider 预设/结构性兜底
-export function resolveConfig(params = {}) {
+// 分域配置：配置文件可写 image / video 子对象，分别为图片/视频指定独立厂商（baseUrl/key/模型/端点）；
+// 顶层字段作为两者的共同默认。这里把对应域的子对象叠加到默认配置上。
+const SCOPE_KEYS = {
+  image: ["provider", "baseUrl", "apiKey", "imageApiStyle", "imageModel", "imageModels", "imageEndpoint", "imageExtraBody", "saveDir"],
+  video: ["provider", "baseUrl", "apiKey", "videoModel", "videoModels", "videoCreateEndpoint", "videoQueryTemplate", "videoExtraBody", "saveDir"],
+};
+
+function applyScope(data, kind) {
+  if (!kind || !isPlainObject(data[kind])) return data;
+  const overlay = {};
+  for (const key of SCOPE_KEYS[kind] || []) {
+    if (data[kind][key] !== undefined) overlay[key] = data[kind][key];
+  }
+  return { ...data, ...overlay };
+}
+
+// 配置优先级：调用参数 > 环境变量 > 配置文件（含 image/video 分域覆盖）> provider 预设/结构性兜底
+export function resolveConfig(params = {}, kind = null) {
   const configPath = firstNonEmpty(process.env.AGNES_MEDIA_CONFIG) || DEFAULT_CONFIG_PATH;
   const file = readConfigFile(configPath);
   const env = process.env;
-  const data = file.data;
+  const data = applyScope(file.data, kind);
 
   const apiKey = pickSource(params.apiKey, "param", cleanEnv(env.AGNES_API_KEY), "env", cleanEnv(env.AGNES_MEDIA_API_KEY), "env", data.apiKey, "file");
   const baseUrlPick = pickSource(
@@ -306,8 +362,8 @@ export function resolveConfig(params = {}) {
 
 // 候选链解析：配置了 chains 时返回 1~3 个候选（每项可整体覆盖 baseUrl/key/模型/端点，
 // 实现跨厂商原子切换）；未配置时返回 [默认配置]。调用参数覆盖只作用于第一项。
-export function resolveCandidates(params = {}) {
-  const base = resolveConfig(params);
+export function resolveCandidates(params = {}, kind = null) {
+  const base = resolveConfig(params, kind);
   const file = readConfigFile(base.configPath);
   const chains = Array.isArray(file.data.chains) ? file.data.chains.filter(isPlainObject).slice(0, MAX_CHAIN) : [];
   if (chains.length === 0) return [base];
@@ -320,7 +376,7 @@ export function resolveCandidates(params = {}) {
     // 条目显式指定了模型链时，屏蔽配置区注入的 env 模型，避免污染该候选的兜底链
     if (entry.imageModels !== undefined) entryParams._noEnvImageModels = true;
     if (entry.videoModels !== undefined) entryParams._noEnvVideoModels = true;
-    return i === 0 ? resolveConfig({ ...params, ...entryParams }) : resolveConfig(entryParams);
+    return i === 0 ? resolveConfig({ ...params, ...entryParams }, kind) : resolveConfig(entryParams, kind);
   });
 }
 
@@ -380,7 +436,7 @@ function extractApiError(json, text, status) {
 }
 
 async function apiRequest(cfg, path, { method = "GET", body, query, timeoutMs = 300000 } = {}) {
-  const url = new URL(joinEndpoint(cfg.baseUrl, path));
+  const url = validateRequestUrl(joinEndpoint(cfg.baseUrl, path));
   if (query) {
     for (const [k, v] of Object.entries(query)) url.searchParams.set(k, String(v));
   }
@@ -514,7 +570,8 @@ async function downloadBinary(url, timeoutMs = 180000) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), timeoutMs);
   try {
-    const res = await fetch(url, { signal: controller.signal });
+    const validated = validateRequestUrl(url);
+    const res = await fetch(validated, { signal: controller.signal });
     if (!res.ok) throw new MediaError(`下载失败（HTTP ${res.status}）：${url}`);
     const buf = Buffer.from(await res.arrayBuffer());
     return { buffer: buf, contentType: res.headers.get("content-type") || "" };

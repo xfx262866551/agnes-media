@@ -2,7 +2,7 @@
 
 > ZCode 插件：一句话生成图片和视频。文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频，自定义 API Key 与 Base URL，跨厂商容灾。
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.8.7-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.9.0-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
 
 给 [ZCode](https://zcode.ai) 装一个插件，以后"画张图""把这个视频做出来"都是一句话的事。基于 [Agnes AI](https://agnes-ai.com) 的图片/视频生成 API 设计，同时兼容 OpenAI 兼容形态的其他厂商（智谱、各类中转站等）。
 
@@ -20,52 +20,60 @@
 
 ## 安装
 
-**前置**：ZCode 桌面版 + Node.js 18+（`node` 命令可用）。插件本身不含任何密钥，每个人配自己的 Key。
+**前置**：ZCode 桌面版 + Node.js 18+（`node` 命令可用）。插件不含任何密钥，每个人配自己的。
 
-1. ZCode 里打开 **插件市场 → 添加 → 添加插件市场**；
-2. 粘贴本仓库地址（或本地解压后的目录）；
-3. 在 **个人** 找到「Agnes 图片视频生成」，点击 **安装**；
-4. **配置一次（永久生效）**：
-   - **API Key**：运行 **`/agnes-media:init`** 按引导写入配置文件，或手写 `~/.agnes-media/config.json`，或设环境变量 `AGNES_API_KEY`（ZCode 配置区暂不支持直接填写敏感值，API Key 只在配置区显示脱敏状态）；
-   - **Base URL / 模型 / 兜底链 / 保存目录**（非敏感项）：可在 **插件详情配置区** 填写，保存后**完全退出并重开 ZCode** 生效；也可全部写进配置文件；
-5. 直接说「画一张赛博朋克城市夜景」或「生成一段 5 秒海浪视频」即可。中途换 Key/换厂商用 `/agnes-media:config` 或改配置文件。
+1. **插件市场 → 添加 → 添加插件市场**，粘贴本仓库地址；
+2. 在 **个人** 找到「图片视频生成（任意厂商）」→ **安装**；
+3. 按下面「配置」一节完成一次配置（最少只需 Key + Base URL）；
+4. 直接说「画一张赛博朋克城市夜景」或「生成一段 5 秒海浪视频」。
 
-> 提示：插件 MCP 服务器在 ZCode 启动时注册——安装/更新插件或改完配置区后，需**完全退出 ZCode（菜单 → 退出）再重开**才生效；可在 **设置 → MCP → Plugin MCP 服务器** 分组确认 `agnes-media` 已出现。
+> 插件 MCP 服务器在 ZCode 启动时注册：安装/更新插件或改完配置区后需**完全退出 ZCode（菜单 → 退出）再重开**；可在 **设置 → MCP → Plugin MCP 服务器** 确认 `agnes-media` 已出现。
 
-## 配置（无默认值，全部自己填）
+## 配置（一次配好，永久生效）
 
-按推荐顺序四种方式（实际优先级：调用参数 > 环境变量（含配置区注入）> 配置文件）：
+**最少只需两项：API Key + Base URL**。接口格式按地址自动判断（含 `agnes-ai.com` → Agnes 官方，其余 → OpenAI 兼容），**不需要选"厂商形态"**。
 
-1. **插件详情配置区（仅非敏感项）**：设置 → 插件 → 本插件详情 → **配置** 区，可填 `baseUrl`、`imageModel`、`videoModel`、两个兜底链、`saveDir`。保存后**完全退出并重开 ZCode** 生效（值以环境变量注入 MCP 服务器）。⚠️ `apiKey` 是敏感字段，当前版本配置区**填不了**，只用 API Key 的另外两条路径；
-2. **初始化命令**：`/agnes-media:init` 一次性问清并写入；`/agnes-media:config` 中途修改——写配置文件，**立即生效无需重启**：
-   - Windows：`C:\Users\<用户名>\.agnes-media\config.json`
-   - macOS/Linux：`~/.agnes-media/config.json`
-3. **环境变量**：`AGNES_API_KEY`、`AGNES_BASE_URL`、`AGNES_MEDIA_PROVIDER`、`AGNES_IMAGE_MODEL` / `AGNES_VIDEO_MODEL`（模型链用 `AGNES_IMAGE_MODELS` / `AGNES_VIDEO_MODELS`，逗号分隔）；
-4. **一次性参数**：调用时传 `apiKey`/`baseUrl`（会留在对话记录，不推荐）。
+| 项 | 配置方式 |
+| --- | --- |
+| API Key | `/agnes-media:init` 写入配置文件、手写配置文件、或环境变量 `AGNES_API_KEY`。⚠️ ZCode 配置区的敏感字段只能显示脱敏状态、填不了 |
+| Base URL / 模型 / 兜底链 / 保存目录 | 插件详情**配置区**（保存后完全退出重开 ZCode 生效），或写配置文件（立即生效） |
 
-配置文件示例（高级字段如模型兜底链 `imageModels`、候选链 `chains`、端点、`saveDir` 都写在这里）：
+配置文件：Windows `C:\Users\<用户名>\.agnes-media\config.json`；macOS/Linux `~/.agnes-media/config.json`。
+优先级：调用参数 > 环境变量（含配置区注入）> 配置文件 > 自动推断。
 
 ```json
 {
-  "provider": "agnes",
-  "baseUrl": "https://apihub.agnes-ai.com",
   "apiKey": "sk-你的key",
-  "imageModels": ["agnes-image-2.5-flash"],
-  "videoModels": ["agnes-video-2.5-flash"]
+  "baseUrl": "https://apihub.agnes-ai.com",
+  "imageModel": "agnes-image-2.5-flash",
+  "videoModel": "agnes-video-2.5-flash"
 }
 ```
 
-Key 申请（Agnes）：<https://platform.agnes-ai.com/> 注册 → API Keys。
+Key 申请（Agnes）：<https://platform.agnes-ai.com/> 注册 → API Keys。Base URL 带不带 `/v1` 都行（插件会自动去重）。
+
+### 图片与视频用不同厂商（分域配置）
+
+顶层字段作为共同默认，`image` / `video` 子对象各自覆盖对应域（baseUrl/apiKey/模型/端点），互不影响：
+
+```json
+{
+  "image": { "baseUrl": "https://厂商A地址", "apiKey": "A的key", "imageModel": "A的图片模型" },
+  "video": { "baseUrl": "https://厂商B地址", "apiKey": "B的key", "videoModel": "B的视频模型", "videoQueryTemplate": "/v1/videos/{video_id}" }
+}
+```
+
+未配置的域自动回落到顶层字段。配置区只有单一套字段（作为共同默认），**分域配置写配置文件**（`configure_media` 的 `image`/`video` 参数也可写）。
 
 ### 适配其他厂商
 
-| 形态 | provider | 说明 |
-| --- | --- | --- |
-| Agnes 官方 | `agnes` | 图生图走 `extra_body.image`，视频查询走 `/agnesapi`；keyframe/reference 视频模式仅此形态 |
-| OpenAI 兼容网关 | `openai` | 图片 `response_format` 顶层；视频 `POST /v1/videos` + `GET /v1/videos/{id}` |
-| 其他 | `custom` | 端点全手动：`imageEndpoint` / `videoCreateEndpoint` / `videoQueryTemplate`（支持 `{video_id}`、`{model}` 占位符） |
+| 形态（自动判断） | 说明 |
+| --- | --- |
+| Agnes 官方 | 图生图走 `extra_body.image`，视频查询走 `/agnesapi`；keyframe/reference 视频模式仅此形态 |
+| OpenAI 兼容网关 | 图片 `response_format` 顶层；视频 `POST /v1/videos` + `GET /v1/videos/{id}` |
+| 自定义 | 端点全手动：`imageEndpoint` / `videoCreateEndpoint` / `videoQueryTemplate`（支持 `{video_id}`、`{model}` 占位符） |
 
-请求形态也可用 `imageApiStyle` 单独覆盖；厂商特有参数用 `imageExtraBody` / `videoExtraBody` 附加。
+请求形态可用 `imageApiStyle` 覆盖；厂商特有参数用 `imageExtraBody` / `videoExtraBody` 附加。
 
 ## 容灾（配了就不用管）
 

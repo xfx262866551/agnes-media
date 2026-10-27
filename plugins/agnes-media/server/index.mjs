@@ -210,6 +210,8 @@ const TOOLS = [
             "候选链（最多 3 个，跨厂商整体容灾）：每项可覆盖 baseUrl/apiKey/provider/imageModels/videoModels/各端点等；第一项失败（429/5xx/超时/不通/404）时整体切到下一项（地址+Key+模型一起换）。例：[{\"provider\":\"agnes\",\"baseUrl\":\"...\",\"apiKey\":\"...\",\"imageModels\":[\"...\"]},{\"provider\":\"openai\",\"baseUrl\":\"...\",\"apiKey\":\"...\",\"imageModels\":[\"...\"]}]",
         },
         saveDir: { type: "string", description: "生成文件默认保存目录（绝对路径）。" },
+        image: { type: "object", description: "图片专用厂商配置（可选，覆盖顶层默认）：provider/baseUrl/apiKey/imageApiStyle/imageModel/imageModels/imageEndpoint/imageExtraBody/saveDir" },
+        video: { type: "object", description: "视频专用厂商配置（可选，覆盖顶层默认）：provider/baseUrl/apiKey/videoModel/videoModels/videoCreateEndpoint/videoQueryTemplate/videoExtraBody/saveDir" },
         unset: {
           type: "array",
           items: { type: "string" },
@@ -246,30 +248,42 @@ function formatCandidateLine(cfg, index) {
   return parts.join(" · ");
 }
 
-function formatConfigStatus(candidates) {
+function formatScopeBlock(label, candidates, extraLines) {
   const cfg = candidates[0];
-  const lines = ["Agnes Media 配置状态", ""];
-  lines.push(`- 候选链：共 ${candidates.length} 项（最多 ${MAX_CHAIN} 项；失败时按顺序整体切换）`);
+  const lines = [`【${label}】候选链：共 ${candidates.length} 项（最多 ${MAX_CHAIN} 项；失败时按顺序整体切换）`];
   candidates.forEach((c, i) => lines.push(`  - ${formatCandidateLine(c, i)}`));
-  const hasEnv = candidates.some(
+  lines.push(`  - 请求形态：${cfg.imageApiStyle}（来源：${cfg.imageApiStyleSource}）`);
+  for (const l of extraLines) lines.push(`  - ${l}`);
+  return { lines, cfg };
+}
+
+function formatConfigStatus(imgCands, vidCands) {
+  const img = imgCands[0];
+  const vid = vidCands[0];
+  const lines = ["Agnes Media 配置状态", ""];
+
+  const imgBlock = formatScopeBlock("图片", imgCands, [`端点：${img.imageEndpoint}`]);
+  const vidBlock = formatScopeBlock("视频", vidCands, [`创建端点：${vid.videoCreateEndpoint}`, `查询模板：${vid.videoQueryTemplate}`]);
+  lines.push(...imgBlock.lines, "", ...vidBlock.lines);
+
+  if (img.baseUrl !== vid.baseUrl || img.apiKey !== vid.apiKey) {
+    lines.push("", "ℹ️ 图片与视频使用不同的厂商配置（配置文件 image/video 分域生效）");
+  }
+  const hasEnv = [...imgCands, ...vidCands].some(
     (c) => c.sources.apiKey === "env" || c.sources.baseUrl === "env" || c.sources.imageModel === "env" || c.sources.videoModel === "env"
   );
-  if (hasEnv) lines.push("  ℹ️ env 来源的值可能来自插件详情「配置」区（优先级高于配置文件）；候选链条目显式指定的模型不受其影响");
-  lines.push(`- 图片请求形态：${cfg.imageApiStyle}（来源：${cfg.imageApiStyleSource}）`);
-  lines.push(`- 图片端点：${cfg.imageEndpoint}`);
-  lines.push(`- 视频创建端点：${cfg.videoCreateEndpoint}`);
-  lines.push(`- 视频查询模板：${cfg.videoQueryTemplate}`);
-  if (cfg.textModel) lines.push(`- 提示词增强模型：${cfg.textModel}（chat 端点：${cfg.chatEndpoint}）`);
+  if (hasEnv) lines.push("ℹ️ env 来源的值可能来自插件详情「配置」区（优先级高于配置文件）");
+  if (img.textModel) lines.push(`- 提示词增强模型：${img.textModel}（chat 端点：${img.chatEndpoint}）`);
   else lines.push("- 提示词增强模型：未配置（enhance_prompt 不可用）");
-  if (cfg.saveDir) lines.push(`- 默认保存目录：${cfg.saveDir}`);
-  lines.push(`- 配置文件路径：${cfg.configPath}${cfg.configFile.exists ? "（存在）" : "（不存在）"}`);
-  if (cfg.configFile.error) lines.push(`- 配置文件错误：${cfg.configFile.error}`);
-  if (candidates.length === 1 && cfg.missing.length > 0) {
-    lines.push("", `⚠️ 配置不完整，缺少：${cfg.missing.join("、")}`);
-    lines.push("请调用 configure_media 完成初始化（provider/baseUrl/apiKey/imageModel/videoModel），或让用户手写配置文件/设置环境变量。");
+  if (img.saveDir) lines.push(`- 默认保存目录：${img.saveDir}`);
+  lines.push(`- 配置文件路径：${img.configPath}${img.configFile.exists ? "（存在）" : "（不存在）"}`);
+  if (img.configFile.error) lines.push(`- 配置文件错误：${img.configFile.error}`);
+  if (!img.apiKey) {
+    lines.push("", "⚠️ 未配置 API Key：运行 /agnes-media:init 写入配置文件，或编辑 ~/.agnes-media/config.json 的 apiKey（ZCode 配置区暂不支持填敏感值）。");
   }
-  if (!cfg.apiKey) {
-    lines.push("", "⚠️ 未配置 API Key：设置→插件→本插件→配置区填写（保存后完全退出重开 ZCode），或写 ~/.agnes-media/config.json 的 apiKey 字段。");
+  const missing = [...new Set([...img.missing, ...vid.missing])];
+  if (missing.length > 0) {
+    lines.push("", `⚠️ 配置不完整，缺少：${missing.join("、")}（用 /agnes-media:init 或 configure_media 补齐）。`);
   }
   return lines.join("\n");
 }
@@ -330,22 +344,22 @@ function formatVideoStatus(s) {
 }
 
 async function callTool(name, args) {
-  const candidates = resolveCandidates(args);
 
   switch (name) {
     case "media_config": {
-      return toolResult(formatConfigStatus(candidates));
+      return toolResult(formatConfigStatus(resolveCandidates(args, "image"), resolveCandidates(args, "video")));
     }
 
     case "configure_media": {
       const { reset, unset, ...values } = args || {};
       const result = writeConfig(values, { reset: reset === true, unset });
-      const after = resolveCandidates({});
+      const afterImg = resolveCandidates({}, "image");
+      const afterVid = resolveCandidates({}, "video");
       const lines = [
         "✅ 配置已写入",
         `- 配置文件：${result.path}`,
         "",
-        formatConfigStatus(after),
+        formatConfigStatus(afterImg, afterVid),
         "",
         "配置已生效（下次调用读取）。如需修改，随时再次调用 configure_media。",
       ];
@@ -353,28 +367,29 @@ async function callTool(name, args) {
     }
 
     case "generate_image": {
-      const r = await generateImage(candidates, args);
+      const r = await generateImage(resolveCandidates(args, "image"), args);
       return toolResult(formatImageResult(r));
     }
 
     case "edit_image": {
       const inputs = Array.isArray(args.input_images) ? args.input_images.filter(Boolean) : [];
       if (inputs.length === 0) throw new MediaError("input_images 至少需要 1 张图片（URL 或本地路径）。");
-      const r = await generateImage(candidates, { ...args, input_images: inputs });
+      const r = await generateImage(resolveCandidates(args, "image"), { ...args, input_images: inputs });
       return toolResult(formatImageResult(r));
     }
 
     case "generate_video": {
-      const task = await createVideoTask(candidates, args);
+      const videoCandidates = resolveCandidates(args, "video");
+      const task = await createVideoTask(videoCandidates, args);
       if (args.wait !== true) {
         return toolResult(formatVideoTask(task));
       }
       const timeoutMs = Number(args.poll_timeout_ms) > 0 ? Number(args.poll_timeout_ms) : 300000;
-      const final = await pollVideoTask(candidates, task.video_id, task.model, { timeoutMs });
+      const final = await pollVideoTask(videoCandidates, task.video_id, task.model, { timeoutMs });
       const lines = [formatVideoStatus(final)];
       if (String(final.status || "").toLowerCase() === "completed" && args.download === true && final.url) {
         try {
-          const dl = await downloadVideo(candidates[0], final.url, args.save_dir, `agnes-video-${task.video_id}.mp4`);
+          const dl = await downloadVideo(videoCandidates[0], final.url, args.save_dir, `agnes-video-${task.video_id}.mp4`);
           lines.push(`- 本地文件：${dl.saved_path}（${dl.bytes} 字节）`);
         } catch (err) {
           lines.push(`- 下载到本地失败：${err.message}`);
@@ -384,7 +399,7 @@ async function callTool(name, args) {
     }
 
     case "video_status": {
-      const s = await getVideoTask(candidates, args.video_id, args.model);
+      const s = await getVideoTask(resolveCandidates(args, "video"), args.video_id, args.model);
       return toolResult(formatVideoStatus(s));
     }
 
