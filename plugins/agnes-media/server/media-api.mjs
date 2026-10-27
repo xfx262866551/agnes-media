@@ -160,7 +160,7 @@ function isPlainObject(v) {
   return v && typeof v === "object" && !Array.isArray(v);
 }
 
-function firstNonEmpty(...values) {
+export function firstNonEmpty(...values) {
   for (const v of values) {
     if (typeof v === "string" && v.trim()) return v.trim();
   }

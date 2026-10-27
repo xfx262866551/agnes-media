@@ -2,7 +2,7 @@
 
 > ZCode 插件：一句话生成图片和视频。**图片与视频可以分别配置不同厂商**，自定义 API Key 与 Base URL，跨厂商容灾。
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.9.3-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.10.0-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
 
 给 [ZCode](https://zcode.ai) 装一个插件，以后"画张图""把这个视频做出来"都是一句话的事。基于 [Agnes AI](https://agnes-ai.com) 的图片/视频生成 API 设计，同时兼容 OpenAI 兼容形态的其他厂商（智谱、各类中转站等）。
 
@@ -101,6 +101,16 @@ Key 申请（Agnes）：<https://platform.agnes-ai.com/> 注册 → API Keys。B
 ```
 
 - **提示词增强**（可选）：配置 `textModel` 后，生成时传 `enhance_prompt: true`，先用 chat 模型把简短描述扩写成结构化提示词；失败自动降级用原提示词。
+
+## 视频完成自动提醒
+
+`generate_video` 默认在创建任务后拉起**后台监控进程**：视频渲染完成时
+
+1. **弹系统通知**（Windows 气球 / macOS 通知中心 / Linux notify-send）；
+2. **自动下载 mp4** 到 `save_dir`（默认 `<当前目录>/ZcodeImage/`，文件名 `agnes-video-<video_id>.mp4`）；
+3. 任务状态写入 `~/.agnes-media/last-video.json`（含 video_id、状态、本地路径、下载链接）。
+
+监控独立于 ZCode 会话生存（关掉对话也继续跑）；不需要可传 `notify: false`。中途随时问「视频好了吗」即可查进度。
 
 ## 输出规范
 

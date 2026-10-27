@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 // Agnes Media MCP Server（零依赖，stdio 传输，换行分隔 JSON-RPC 2.0）
 // 工具：generate_image / edit_image / generate_video / video_status / media_config / configure_media
+import { spawn } from "node:child_process";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
 import {
   IMAGE_RATIOS,
   IMAGE_SIZE_TIERS,
@@ -9,6 +12,7 @@ import {
   VIDEO_ASPECT_RATIOS,
   VIDEO_MODES,
   MediaError,
+  firstNonEmpty,
   resolveCandidates,
   maskKey,
   writeConfig,
@@ -19,7 +23,7 @@ import {
   downloadVideo,
 } from "./media-api.mjs";
 
-const SERVER_INFO = { name: "agnes-media", version: "0.4.0" };
+const SERVER_INFO = { name: "agnes-media", version: "0.10.0" };
 const PROTOCOL_VERSION = "2024-11-05";
 
 const ENHANCE_DESC = "true 时先用 chat 模型把提示词扩写成结构化生成提示词（需配置 textModel；失败自动用原提示词）。";
@@ -124,7 +128,8 @@ const TOOLS = [
         enhance_prompt: { type: "boolean", description: ENHANCE_DESC },
         wait: { type: "boolean", description: "是否等待任务完成。true=轮询直到完成/失败/超时；false=立即返回 video_id。默认 false。" },
         poll_timeout_ms: { type: "integer", description: "wait=true 时的最长轮询时间（毫秒），默认 300000。" },
-        download: { type: "boolean", description: "完成后是否把视频下载到本地，默认 false（仅返回链接）。" },
+        download: { type: "boolean", description: "wait=true 时完成后是否把视频下载到本地，默认 false（仅返回链接）。" },
+        notify: { type: "boolean", description: "任务完成后是否自动提醒并下载（后台监控 + 系统通知），默认 true；仅 wait=false 时有效。" },
         save_dir: { type: "string", description: "download=true 时的保存目录，默认 <当前工作目录>/ZcodeImage。" },
         model: { type: "string", description: "覆盖配置里的视频模型（单次调用）。指定后不走兜底链。" },
         apiKey: { type: "string", description: "一次性覆盖 API Key（不推荐）。" },
@@ -222,6 +227,22 @@ const TOOLS = [
     },
   },
 ];
+
+// 创建视频任务后拉起后台监控进程：完成时系统通知 + 自动下载到本地
+function spawnVideoNotifier(videoId, model, saveDir) {
+  try {
+    const here = dirname(fileURLToPath(import.meta.url));
+    const child = spawn(
+      process.execPath,
+      [join(here, "video-notify.mjs"), "--video-id", String(videoId), "--model", String(model || ""), "--save-dir", String(saveDir || "")],
+      { detached: true, stdio: "ignore" }
+    );
+    child.unref();
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 function toolResult(text) {
   return { content: [{ type: "text", text }] };
@@ -382,7 +403,15 @@ async function callTool(name, args) {
       const videoCandidates = resolveCandidates(args, "video");
       const task = await createVideoTask(videoCandidates, args);
       if (args.wait !== true) {
-        return toolResult(formatVideoTask(task));
+        let line = formatVideoTask(task);
+        if (args.notify !== false) {
+          const saveDir = firstNonEmpty(args.save_dir) || videoCandidates[0].saveDir;
+          const ok = spawnVideoNotifier(task.video_id, task.model, saveDir);
+          line += ok
+            ? `\n\n🔔 已启动后台监控：视频完成后会弹系统通知，并自动下载到 ${saveDir || "<当前目录>/ZcodeImage"}；中途也可随时让我查进度。`
+            : "\n\n⚠️ 后台监控启动失败，可随时让我用 video_status 查进度（完成后可手动下载）。";
+        }
+        return toolResult(line);
       }
       const timeoutMs = Number(args.poll_timeout_ms) > 0 ? Number(args.poll_timeout_ms) : 300000;
       const final = await pollVideoTask(videoCandidates, task.video_id, task.model, { timeoutMs });

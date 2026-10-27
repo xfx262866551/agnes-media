@@ -100,6 +100,7 @@ description: 生成图片与视频（文生图、图生图、图片编辑、多�
 - `size`：Agnes Flash 为 `"720P"`；OpenAI 兼容形态传精确尺寸。
 - `aspect_ratio`：`21:9`/`16:9`/`4:3`/`1:1`/`3:4`/`9:16`（Agnes 形态）。
 - `keyframe`：至少传 `first_frame` 或 `last_frame` 之一。`reference`：`images`≤5、`audios`≤3，至少一项非空。
+- **完成自动提醒（默认开启）**：`generate_video` 创建任务后会自动拉起后台监控进程——视频完成后**弹系统通知**并自动下载 mp4 到 `save_dir`（默认 `ZcodeImage/`）；不需要可传 `notify: false`。中途随时可以问进度；最近一次任务状态也写在 `~/.agnes-media/last-video.json`。
 - **异步流程**：`generate_video` 默认 `wait=false` 立即返回 `video_id`。之后用 `video_status` 轮询（间隔约 2 秒，最多约 5 分钟），或首次调用就 `wait=true`（可配 `poll_timeout_ms`）。`status=completed` 读 `url`；`failed` 如实转告原因。
 
 ## 配合使用的本地 skill / 子代理（如已安装）
