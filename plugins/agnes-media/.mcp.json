@@ -9,7 +9,8 @@
         "AGNES_BASE_URL": "${user_config.baseUrl}",
         "AGNES_MEDIA_PROVIDER": "${user_config.provider}",
         "AGNES_IMAGE_MODEL": "${user_config.imageModel}",
-        "AGNES_VIDEO_MODEL": "${user_config.videoModel}"
+        "AGNES_VIDEO_MODEL": "${user_config.videoModel}",
+        "AGNES_MEDIA_SAVE_DIR": "${user_config.saveDir}"
       },
       "enabled": true,
       "timeoutMs": 60000

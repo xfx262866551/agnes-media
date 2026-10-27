@@ -251,6 +251,10 @@ function formatConfigStatus(candidates) {
   const lines = ["Agnes Media 配置状态", ""];
   lines.push(`- 候选链：共 ${candidates.length} 项（最多 ${MAX_CHAIN} 项；失败时按顺序整体切换）`);
   candidates.forEach((c, i) => lines.push(`  - ${formatCandidateLine(c, i)}`));
+  const hasEnv = candidates.some(
+    (c) => c.sources.apiKey === "env" || c.sources.baseUrl === "env" || c.sources.imageModel === "env" || c.sources.videoModel === "env"
+  );
+  if (hasEnv) lines.push("  ℹ️ env 来源的值可能来自插件详情「配置」区（优先级高于配置文件）；候选链条目显式指定的模型不受其影响");
   lines.push(`- 图片请求形态：${cfg.imageApiStyle}（来源：${cfg.imageApiStyleSource}）`);
   lines.push(`- 图片端点：${cfg.imageEndpoint}`);
   lines.push(`- 视频创建端点：${cfg.videoCreateEndpoint}`);

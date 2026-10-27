@@ -222,9 +222,10 @@ export function resolveConfig(params = {}) {
   const provider = PROVIDERS.includes(providerPick.value) ? providerPick.value : "";
   const preset = provider ? PROVIDER_PRESETS[provider] : null;
 
-  // 模型兜底链（最多 3 个）：调用参数 > 环境变量 > 配置文件；单值 imageModel/videoModel 视为链首
-  const envImageModels = cleanEnv(env.AGNES_IMAGE_MODELS) || cleanEnv(env.AGNES_IMAGE_MODEL);
-  const envVideoModels = cleanEnv(env.AGNES_VIDEO_MODELS) || cleanEnv(env.AGNES_VIDEO_MODEL);
+  // 模型兜底链（最多 3 个）：调用参数 > 环境变量 > 配置文件；单值 imageModel/videoModel 视为链首。
+  // _noEnvImageModels/_noEnvVideoModels：候选链条目显式指定模型时，不让配置区注入的 env 模型混入该候选
+  const envImageModels = params._noEnvImageModels === true ? "" : cleanEnv(env.AGNES_IMAGE_MODELS) || cleanEnv(env.AGNES_IMAGE_MODEL);
+  const envVideoModels = params._noEnvVideoModels === true ? "" : cleanEnv(env.AGNES_VIDEO_MODELS) || cleanEnv(env.AGNES_VIDEO_MODEL);
   const imageModels = modelChain(params.imageModels, params.imageModel, envImageModels, data.imageModels, data.imageModel);
   const videoModels = modelChain(params.videoModels, params.videoModel, envVideoModels, data.videoModels, data.videoModel);
   const imageModelPick = pickSource(imageModels[0], imageModels.length ? (data.imageModels || data.imageModel ? "file" : "env/param") : "none");
@@ -243,7 +244,7 @@ export function resolveConfig(params = {}) {
   const chatEndpoint = firstNonEmpty(params.chatEndpoint, data.chatEndpoint) || FALLBACK_ENDPOINTS.chatEndpoint;
   const textModel = pickSource(params.textModel, "param", data.textModel, "file");
 
-  const saveDir = pickSource(params.saveDir, "param", data.saveDir, "file");
+  const saveDir = pickSource(params.saveDir, "param", cleanEnv(env.AGNES_MEDIA_SAVE_DIR), "env", data.saveDir, "file");
 
   // 未配置的必填项（baseUrl / apiKey / 模型无默认值，必须由用户提供）
   const missing = [];
@@ -297,6 +298,9 @@ export function resolveCandidates(params = {}) {
     for (const key of CHAIN_ENTRY_KEYS) {
       if (entry[key] !== undefined) entryParams[key] = entry[key];
     }
+    // 条目显式指定了模型链时，屏蔽配置区注入的 env 模型，避免污染该候选的兜底链
+    if (entry.imageModels !== undefined) entryParams._noEnvImageModels = true;
+    if (entry.videoModels !== undefined) entryParams._noEnvVideoModels = true;
     return i === 0 ? resolveConfig({ ...params, ...entryParams }) : resolveConfig(entryParams);
   });
 }

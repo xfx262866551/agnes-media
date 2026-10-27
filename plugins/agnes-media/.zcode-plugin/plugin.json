@@ -1,6 +1,6 @@
 {
   "name": "agnes-media",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "图片与视频生成工具：文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频；插件详情配置区填一次 Key 即永久生效；候选链跨厂商容灾 + 模型兜底链 + 提示词增强；无内置默认凭据",
   "author": { "name": "xfx262866551" },
   "mcpServers": ".mcp.json",
@@ -33,6 +33,11 @@
       "title": "视频模型",
       "description": "如 agnes-video-2.5-flash（Agnes 官方）或厂商提供的模型 ID；多个用逗号分隔可做兜底链",
       "type": "string"
+    },
+    "saveDir": {
+      "title": "生成文件保存目录",
+      "description": "图片/视频的默认保存目录；留空则保存到当前工作目录的 ZcodeImage 子目录",
+      "type": "directory"
     }
   }
 }
