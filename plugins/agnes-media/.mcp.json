@@ -15,7 +15,7 @@
         "AGNES_MEDIA_SAVE_DIR": "${user_config.saveDir}"
       },
       "enabled": true,
-      "timeoutMs": 60000
+      "timeoutMs": 30000
     }
   }
 }
