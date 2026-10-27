@@ -2,7 +2,7 @@
 
 > ZCode 插件：一句话生成图片和视频。文生图、图生图、图片编辑、多图合成、文生视频/关键帧/参考视频，自定义 API Key 与 Base URL，跨厂商容灾。
 
-[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.8.5-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
+[![license](https://img.shields.io/badge/license-MIT-green)](LICENSE) [![version](https://img.shields.io/badge/version-0.8.6-blue)](plugins/agnes-media/.zcode-plugin/plugin.json)
 
 给 [ZCode](https://zcode.ai) 装一个插件，以后"画张图""把这个视频做出来"都是一句话的事。基于 [Agnes AI](https://agnes-ai.com) 的图片/视频生成 API 设计，同时兼容 OpenAI 兼容形态的其他厂商（智谱、各类中转站等）。
 
